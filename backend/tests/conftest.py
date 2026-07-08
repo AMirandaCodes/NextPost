@@ -2,14 +2,15 @@ import os
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, select, text
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
 from app.core.security import create_access_token, hash_password
 from app.db.base import Base
 from app.main import app
-from app.models import User
+from app.models import Post, Tag, User
+from app.models.enums import Platform, PostStatus
 
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL", "postgresql+psycopg://nextpost:nextpost@db:5432/nextpost_test"
@@ -80,3 +81,55 @@ def user(db_session) -> User:
 @pytest.fixture
 def auth_headers(user) -> dict[str, str]:
     return {"Authorization": f"Bearer {create_access_token(user.id)}"}
+
+
+@pytest.fixture
+def other_user(db_session) -> User:
+    user = User(
+        email="bob@example.com",
+        full_name="Bob Other",
+        hashed_password=hash_password("password123"),
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+def post_factory(db_session):
+    """Create posts directly in the DB, bypassing the API, for arranging test data."""
+
+    def _create(
+        owner: User,
+        *,
+        title: str = "A post title",
+        content: str = "Some post content.",
+        platform: Platform = Platform.LINKEDIN,
+        status: PostStatus = PostStatus.DRAFT,
+        scheduled_at=None,
+        published_at=None,
+        tags: tuple[str, ...] = (),
+    ) -> Post:
+        resolved_tags = []
+        for name in tags:
+            tag = db_session.scalar(
+                select(Tag).where(Tag.user_id == owner.id, Tag.name == name)
+            )
+            resolved_tags.append(tag or Tag(user_id=owner.id, name=name))
+        post = Post(
+            user_id=owner.id,
+            title=title,
+            content=content,
+            platform=platform,
+            status=status,
+            scheduled_at=scheduled_at,
+            published_at=published_at,
+            tags=resolved_tags,
+        )
+        db_session.add(post)
+        db_session.commit()
+        db_session.refresh(post)
+        return post
+
+    return _create

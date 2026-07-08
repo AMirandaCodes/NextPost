@@ -22,7 +22,7 @@ erDiagram
         int user_id FK "ON DELETE CASCADE"
         varchar_200 title
         text content
-        varchar_20 platform "facebook | instagram | twitter | linkedin | tiktok"
+        varchar_20 platform "facebook | instagram | x | linkedin | tiktok | other"
         varchar_20 status "draft | scheduled | published"
         timestamptz scheduled_at "nullable"
         timestamptz published_at "nullable"

@@ -36,3 +36,6 @@ target-version = "py312"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Prefer the project's ./app over the copy pip installed into site-packages,
+# so tests always run against the bind-mounted (current) code in Docker.
+pythonpath = ["."]

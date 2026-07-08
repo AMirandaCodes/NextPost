@@ -11,3 +11,11 @@ class InvalidCredentials(Exception):
 
 class IncorrectPassword(Exception):
     pass
+
+
+class PostNotFound(Exception):
+    pass
+
+
+class ScheduledDateRequired(Exception):
+    pass

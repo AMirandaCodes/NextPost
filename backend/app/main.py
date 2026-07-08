@@ -9,10 +9,29 @@ from app.core.logging import setup_logging
 setup_logging()
 request_logger = logging.getLogger("app.request")
 
+tags_metadata = [
+    {"name": "auth", "description": "Register and log in. Login returns a Bearer token."},
+    {"name": "users", "description": "Profile and password management for the authenticated user."},
+    {
+        "name": "posts",
+        "description": "Create, browse, update and delete posts. "
+        "Lists support pagination, filtering, search and whitelisted sorting.",
+    },
+    {"name": "tags", "description": "The authenticated user's tag vocabulary."},
+    {"name": "dashboard", "description": "Lightweight summary counts and upcoming posts."},
+    {"name": "health", "description": "Liveness probe."},
+]
+
 app = FastAPI(
     title="NextPost API",
-    description="Social media planning API — organise and schedule upcoming posts.",
-    version="0.1.0",
+    description=(
+        "Social media planning API — organise and schedule upcoming posts.\n\n"
+        "All endpoints except `/auth/*` and `/health` require a Bearer token from "
+        "`POST /api/v1/auth/login`. NextPost manages planning only; it does not "
+        "publish to social media platforms."
+    ),
+    version="0.4.0",
+    openapi_tags=tags_metadata,
 )
 
 

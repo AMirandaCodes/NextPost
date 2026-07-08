@@ -4,9 +4,10 @@ from enum import StrEnum
 class Platform(StrEnum):
     FACEBOOK = "facebook"
     INSTAGRAM = "instagram"
-    TWITTER = "twitter"
+    X = "x"
     LINKEDIN = "linkedin"
     TIKTOK = "tiktok"
+    OTHER = "other"
 
 
 class PostStatus(StrEnum):
