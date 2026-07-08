@@ -1,0 +1,25 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Node
+node_modules/
+dist/
+
+# Uploads (runtime data, never committed)
+uploads/
+
+# IDE / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
