@@ -5,7 +5,8 @@ spreadsheet used to organise and schedule upcoming social media posts.
 
 NextPost manages **planning only**: it does not publish to social media platforms.
 
-> **Status: in development.** Backend API is functional; frontend arrives in a later phase.
+> **Status: in development.** Backend API and the core frontend (auth, posts, profile) are
+> functional; dashboard and calendar views arrive in the next phase.
 
 ## Stack
 
@@ -26,6 +27,10 @@ NextPost manages **planning only**: it does not publish to social media platform
 - **Dashboard** — summary counts (draft/scheduled/published, this week) and the next five
   upcoming posts. Deliberately not analytics.
 - **Structured JSON logging** — request logs plus auth and post lifecycle events.
+- **React frontend** — login/register, posts table with live filters and sortable columns,
+  create/edit forms (React Hook Form) with tag chips, profile management, delete
+  confirmation, and loading/empty/error states on every data page
+  ([ADR 0007](docs/adr/0007-frontend-state-and-forms.md)).
 
 ## Quick start (development)
 
@@ -35,9 +40,12 @@ docker compose up --build
 docker compose exec backend alembic upgrade head
 ```
 
+- App: http://localhost:5174
 - API: http://localhost:8001 — interactive docs at http://localhost:8001/docs
-  (host ports are offset — 8001 for the API, 5433 for PostgreSQL — so NextPost can run
-  alongside other local stacks)
+
+Host ports are offset (5174 app, 8001 API, 5433 PostgreSQL) so NextPost can run alongside
+other local stacks. The Vite dev server proxies `/api/*` to the backend, so the browser
+only ever talks to one origin.
 
 ## API overview
 
@@ -65,9 +73,17 @@ Paginated responses share one envelope:
 ## Running tests & lint
 
 ```bash
+# Backend
 docker compose run --rm backend pytest          # unit + API tests (uses a separate test DB)
-docker compose run --rm backend ruff check .    # lint (CI will run both on every push)
+docker compose run --rm backend ruff check .    # lint
+
+# Frontend
+docker compose run --rm frontend npm test           # Vitest + React Testing Library
+docker compose run --rm frontend npm run lint       # ESLint (zero warnings)
+docker compose run --rm frontend npm run type-check # tsc --noEmit
 ```
+
+CI (GitHub Actions) will run all of the above on every push in a later phase.
 
 ## Documentation
 
