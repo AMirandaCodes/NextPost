@@ -12,6 +12,7 @@ import {
   secondaryButtonClass,
 } from "../../lib/styles";
 import { PLATFORM_LABELS, STATUS_LABELS, type Platform, type Post, type PostStatus } from "../../types";
+import { ImageField, type ImageSelection } from "./ImageField";
 import { TagInput } from "./TagInput";
 
 interface PostFormValues {
@@ -26,12 +27,13 @@ interface PostFormValues {
 interface PostFormProps {
   initial?: Post;
   submitLabel: string;
-  onSubmit: (payload: PostPayload) => Promise<unknown>;
+  onSubmit: (payload: PostPayload, image: ImageSelection) => Promise<unknown>;
 }
 
 export function PostForm({ initial, submitLabel, onSubmit }: PostFormProps) {
   const navigate = useNavigate();
   const [rootError, setRootError] = useState<string | null>(null);
+  const [image, setImage] = useState<ImageSelection>({ file: null, remove: false });
   const {
     register,
     control,
@@ -55,14 +57,17 @@ export function PostForm({ initial, submitLabel, onSubmit }: PostFormProps) {
   const submit = handleSubmit(async (values) => {
     setRootError(null);
     try {
-      await onSubmit({
-        title: values.title.trim(),
-        content: values.content,
-        platform: values.platform as Platform, // validated as required below
-        status: values.status,
-        scheduled_at: fromDatetimeLocal(values.scheduled_at),
-        tags: values.tags,
-      });
+      await onSubmit(
+        {
+          title: values.title.trim(),
+          content: values.content,
+          platform: values.platform as Platform, // validated as required below
+          status: values.status,
+          scheduled_at: fromDatetimeLocal(values.scheduled_at),
+          tags: values.tags,
+        },
+        image,
+      );
     } catch (error) {
       if (!applyValidationErrors(error, setError)) {
         setRootError(getApiErrorMessage(error));
@@ -184,13 +189,7 @@ export function PostForm({ initial, submitLabel, onSubmit }: PostFormProps) {
         />
       </div>
 
-      {/* Image upload lands in a later phase; this block keeps the layout slot ready. */}
-      <div>
-        <span className={labelClass}>Image</span>
-        <div className="rounded-md border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-400">
-          Image upload will be available soon.
-        </div>
-      </div>
+      <ImageField post={initial} value={image} onChange={setImage} />
 
       <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
         <button type="button" className={secondaryButtonClass} onClick={() => navigate("/posts")}>

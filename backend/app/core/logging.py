@@ -3,7 +3,18 @@ import logging
 
 # Extra attributes that, when attached via `logger.info(..., extra={...})`,
 # are promoted into the JSON log line.
-_EXTRA_FIELDS = ("user_id", "method", "path", "status_code", "duration_ms", "event")
+_EXTRA_FIELDS = (
+    "user_id",
+    "method",
+    "path",
+    "status_code",
+    "duration_ms",
+    "event",
+    "post_id",
+    "found",
+    "sent",
+    "failed",
+)
 
 
 class JsonFormatter(logging.Formatter):

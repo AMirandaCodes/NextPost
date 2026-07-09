@@ -1,8 +1,14 @@
 import { useNavigate, useParams } from "react-router-dom";
 import type { PostPayload } from "../api/posts";
 import { ErrorState, LoadingState } from "../components/DataStates";
+import type { ImageSelection } from "../features/posts/ImageField";
 import { PostForm } from "../features/posts/PostForm";
-import { usePost, useUpdatePost } from "../hooks/usePosts";
+import {
+  useDeletePostImage,
+  usePost,
+  useUpdatePost,
+  useUploadPostImage,
+} from "../hooks/usePosts";
 
 export function PostEditPage() {
   const { postId } = useParams();
@@ -10,9 +16,16 @@ export function PostEditPage() {
   const navigate = useNavigate();
   const { data: post, isPending, isError, refetch } = usePost(id);
   const updateMutation = useUpdatePost(id);
+  const uploadImageMutation = useUploadPostImage();
+  const deleteImageMutation = useDeletePostImage();
 
-  async function handleSubmit(payload: PostPayload) {
+  async function handleSubmit(payload: PostPayload, image: ImageSelection) {
     await updateMutation.mutateAsync(payload);
+    if (image.remove) {
+      await deleteImageMutation.mutateAsync(id);
+    } else if (image.file) {
+      await uploadImageMutation.mutateAsync({ id, file: image.file });
+    }
     navigate("/posts");
   }
 

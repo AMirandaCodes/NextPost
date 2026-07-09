@@ -28,11 +28,12 @@ export function usePost(id: number) {
   });
 }
 
-/** Invalidate everything a post mutation can affect: lists, details and the tag vocabulary. */
+/** Invalidate everything a post mutation can affect: lists, details, images, tags. */
 function useInvalidatePosts() {
   const queryClient = useQueryClient();
   return () => {
     void queryClient.invalidateQueries({ queryKey: postKeys.all });
+    void queryClient.invalidateQueries({ queryKey: ["post-image"] });
     void queryClient.invalidateQueries({ queryKey: ["tags"] });
   };
 }
@@ -57,6 +58,22 @@ export function useDeletePost() {
   const invalidate = useInvalidatePosts();
   return useMutation({
     mutationFn: (id: number) => postsApi.deletePost(id),
+    onSuccess: invalidate,
+  });
+}
+
+export function useUploadPostImage() {
+  const invalidate = useInvalidatePosts();
+  return useMutation({
+    mutationFn: ({ id, file }: { id: number; file: File }) => postsApi.uploadPostImage(id, file),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeletePostImage() {
+  const invalidate = useInvalidatePosts();
+  return useMutation({
+    mutationFn: (id: number) => postsApi.deletePostImage(id),
     onSuccess: invalidate,
   });
 }

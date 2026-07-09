@@ -11,6 +11,13 @@ if (!HTMLDialogElement.prototype.showModal) {
   };
 }
 
+// jsdom does not implement object URLs.
+if (!URL.createObjectURL) {
+  let counter = 0;
+  URL.createObjectURL = () => `blob:mock-${++counter}`;
+  URL.revokeObjectURL = () => {};
+}
+
 afterEach(() => {
   localStorage.clear();
 });

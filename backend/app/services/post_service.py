@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.models import Post, Tag, User
 from app.models.enums import Platform, PostStatus
 from app.schemas.post import PostCreate, PostUpdate
-from app.services import tag_service
+from app.services import image_service, tag_service
 from app.services.exceptions import PostNotFound, ScheduledDateRequired
 
 logger = logging.getLogger("app.posts")
@@ -146,8 +146,31 @@ def update_post(db: Session, user: User, post_id: int, data: PostUpdate) -> Post
 
 def delete_post(db: Session, user: User, post_id: int) -> None:
     post = get_post(db, user, post_id)
+    image_service.delete_image(post.image_path)  # a deleted post leaves no orphaned file
     db.delete(post)  # hard delete; post_tags rows cascade
     db.commit()
     logger.info(
         "post deleted", extra={"event": "posts.deleted", "user_id": user.id}
     )
+
+
+def set_post_image(
+    db: Session, user: User, post_id: int, data: bytes, original_filename: str
+) -> Post:
+    """Attach an image to a post, replacing (and removing) any previous one."""
+    post = get_post(db, user, post_id)
+    new_filename = image_service.save_image(data, original_filename)
+    image_service.delete_image(post.image_path)  # after the new file is safely stored
+    post.image_path = new_filename
+    db.commit()
+    db.refresh(post)
+    logger.info("post image set", extra={"event": "posts.image_set", "user_id": user.id})
+    return post
+
+
+def remove_post_image(db: Session, user: User, post_id: int) -> None:
+    post = get_post(db, user, post_id)
+    image_service.delete_image(post.image_path)
+    post.image_path = None
+    db.commit()
+    logger.info("post image removed", extra={"event": "posts.image_removed", "user_id": user.id})

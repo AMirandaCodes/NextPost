@@ -1,13 +1,30 @@
 import logging
 import time
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
 
 from app.api.router import api_router
+from app.core.config import settings
 from app.core.logging import setup_logging
+from app.scheduler import create_scheduler
 
 setup_logging()
 request_logger = logging.getLogger("app.request")
+scheduler_logger = logging.getLogger("app.scheduler")
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    scheduler = None
+    if settings.SCHEDULER_ENABLED:
+        scheduler = create_scheduler()
+        scheduler.start()
+        scheduler_logger.info("reminder scheduler started", extra={"event": "scheduler.started"})
+    yield
+    if scheduler is not None:
+        scheduler.shutdown(wait=False)
+        scheduler_logger.info("reminder scheduler stopped", extra={"event": "scheduler.stopped"})
 
 tags_metadata = [
     {"name": "auth", "description": "Register and log in. Login returns a Bearer token."},
@@ -30,8 +47,9 @@ app = FastAPI(
         "`POST /api/v1/auth/login`. NextPost manages planning only; it does not "
         "publish to social media platforms."
     ),
-    version="0.4.0",
+    version="0.8.0",
     openapi_tags=tags_metadata,
+    lifespan=lifespan,
 )
 
 

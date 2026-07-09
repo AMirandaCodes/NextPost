@@ -1,14 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import type { PostPayload } from "../api/posts";
+import type { ImageSelection } from "../features/posts/ImageField";
 import { PostForm } from "../features/posts/PostForm";
-import { useCreatePost } from "../hooks/usePosts";
+import { useCreatePost, useUploadPostImage } from "../hooks/usePosts";
 
 export function PostCreatePage() {
   const navigate = useNavigate();
   const createMutation = useCreatePost();
+  const uploadImageMutation = useUploadPostImage();
 
-  async function handleSubmit(payload: PostPayload) {
-    await createMutation.mutateAsync(payload);
+  async function handleSubmit(payload: PostPayload, image: ImageSelection) {
+    const post = await createMutation.mutateAsync(payload);
+    if (image.file) {
+      await uploadImageMutation.mutateAsync({ id: post.id, file: image.file });
+    }
     navigate("/posts");
   }
 

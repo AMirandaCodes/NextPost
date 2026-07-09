@@ -1,11 +1,16 @@
 import os
 
+# Must be set before app.core.config is imported: the API-test client enters the
+# app lifespan, and tests must never start the real background scheduler.
+os.environ.setdefault("SCHEDULER_ENABLED", "false")
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select, text
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
+from app.core.config import settings
 from app.core.security import create_access_token, hash_password
 from app.db.base import Base
 from app.main import app
@@ -39,6 +44,14 @@ def engine():
     yield engine
     Base.metadata.drop_all(engine)
     engine.dispose()
+
+
+@pytest.fixture(autouse=True)
+def upload_dir(tmp_path, monkeypatch):
+    """Isolate image storage per test so uploads never leak between tests."""
+    directory = tmp_path / "uploads"
+    monkeypatch.setattr(settings, "UPLOAD_DIR", str(directory))
+    return directory
 
 
 @pytest.fixture

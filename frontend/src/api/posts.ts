@@ -50,3 +50,19 @@ export async function updatePost(id: number, payload: Partial<PostPayload>): Pro
 export async function deletePost(id: number): Promise<void> {
   await api.delete(`/posts/${id}`);
 }
+
+export async function uploadPostImage(id: number, file: File): Promise<Post> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const { data } = await api.put<Post>(`/posts/${id}/image`, formData);
+  return data;
+}
+
+export async function deletePostImage(id: number): Promise<void> {
+  await api.delete(`/posts/${id}/image`);
+}
+
+export async function getPostImageBlob(id: number): Promise<Blob> {
+  const { data } = await api.get<Blob>(`/posts/${id}/image`, { responseType: "blob" });
+  return data;
+}

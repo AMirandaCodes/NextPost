@@ -5,8 +5,9 @@ spreadsheet used to organise and schedule upcoming social media posts.
 
 NextPost manages **planning only**: it does not publish to social media platforms.
 
-> **Status: in development.** Auth, posts, profile, dashboard and calendar are functional;
-> image upload and email reminders arrive in later phases.
+> **Status: in development.** All application features are functional (auth, posts,
+> images, dashboard, calendar, email reminders); remaining phases cover test hardening,
+> production Docker and documentation.
 
 ## Stack
 
@@ -26,11 +27,21 @@ NextPost manages **planning only**: it does not publish to social media platform
   ([ADR 0006](docs/adr/0006-list-endpoint-conventions.md)).
 - **Dashboard** — summary counts (draft/scheduled/published, this week) and the next five
   upcoming posts. Deliberately not analytics.
-- **Structured JSON logging** — request logs plus auth and post lifecycle events.
+- **Email reminders** — an in-process APScheduler job
+  ([ADR 0004](docs/adr/0004-apscheduler-for-background-jobs.md)) emails you when a
+  scheduled post is due within 24 hours. Idempotent via `reminder_sent_at`; failed sends
+  retry automatically ([ADR 0010](docs/adr/0010-reminder-delivery-semantics.md)).
+  Dev emails land in Mailpit at http://localhost:8025.
+- **Structured JSON logging** — request logs plus auth, post lifecycle and reminder-job
+  events (per-send results and run summaries).
 - **React frontend** — login/register, posts table with live filters and sortable columns,
   create/edit forms (React Hook Form) with tag chips, profile management, delete
   confirmation, and loading/empty/error states on every data page
   ([ADR 0007](docs/adr/0007-frontend-state-and-forms.md)).
+- **Post images** — one image per post with preview, replace and remove; validated by
+  extension allow-list, 5 MB cap and Pillow content verification; UUID filenames; served
+  with correct MIME types behind authentication
+  ([ADR 0009](docs/adr/0009-image-storage-and-serving.md)).
 - **Dashboard** — summary cards and upcoming posts as the home page.
 - **Calendar** — custom month view built on `date-fns`
   ([ADR 0008](docs/adr/0008-custom-month-calendar.md)): navigate months, click a day for
@@ -46,6 +57,7 @@ docker compose exec backend alembic upgrade head
 
 - App: http://localhost:5174
 - API: http://localhost:8001 — interactive docs at http://localhost:8001/docs
+- Mail inbox (Mailpit): http://localhost:8025
 
 Host ports are offset (5174 app, 8001 API, 5433 PostgreSQL) so NextPost can run alongside
 other local stacks. The Vite dev server proxies `/api/*` to the backend, so the browser
@@ -65,6 +77,7 @@ All endpoints are under `/api/v1` and require `Authorization: Bearer <token>` ex
 | POST | `/posts` | Create a post (tags auto-created) |
 | GET | `/posts` | List with `page`, `page_size`, `platform`, `status`, `tag`, `search`, `scheduled_from/to`, `sort_by`, `sort_order` |
 | GET / PATCH / DELETE | `/posts/{id}` | Read / partial-update / delete (hard delete) |
+| PUT / GET / DELETE | `/posts/{id}/image` | Upload or replace / serve / remove the post's image |
 | GET | `/tags` | The user's tag vocabulary |
 | GET | `/dashboard` | Summary counts + next 5 scheduled posts |
 
