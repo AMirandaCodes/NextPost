@@ -76,6 +76,43 @@ class TestCreatePost:
         )
         assert response.status_code == 422
 
+    def test_blank_tag_rejected(self, client, auth_headers):
+        response = client.post(
+            POSTS_URL,
+            json={"title": "T", "content": "C", "platform": "x", "tags": ["   "]},
+            headers=auth_headers,
+        )
+        assert response.status_code == 422
+
+    def test_tag_over_50_chars_rejected(self, client, auth_headers):
+        response = client.post(
+            POSTS_URL,
+            json={"title": "T", "content": "C", "platform": "x", "tags": ["a" * 51]},
+            headers=auth_headers,
+        )
+        assert response.status_code == 422
+
+    def test_more_than_ten_tags_rejected(self, client, auth_headers):
+        response = client.post(
+            POSTS_URL,
+            json={
+                "title": "T",
+                "content": "C",
+                "platform": "x",
+                "tags": [f"tag-{i}" for i in range(11)],
+            },
+            headers=auth_headers,
+        )
+        assert response.status_code == 422
+
+    def test_content_over_5000_chars_rejected(self, client, auth_headers):
+        response = client.post(
+            POSTS_URL,
+            json={"title": "T", "content": "x" * 5001, "platform": "x"},
+            headers=auth_headers,
+        )
+        assert response.status_code == 422
+
     def test_create_published_sets_published_at(self, client, auth_headers):
         response = client.post(
             POSTS_URL,
@@ -168,6 +205,30 @@ class TestListPosts:
         response = client.get(f"{POSTS_URL}?sort_by=hashed_password", headers=auth_headers)
         assert response.status_code == 422
 
+    def test_page_beyond_range_returns_empty_items(self, client, auth_headers, user, post_factory):
+        post_factory(user)
+        body = client.get(f"{POSTS_URL}?page=5&page_size=20", headers=auth_headers).json()
+        assert body["items"] == []
+        assert body["total"] == 1
+
+    def test_page_size_above_cap_rejected(self, client, auth_headers):
+        assert client.get(f"{POSTS_URL}?page_size=101", headers=auth_headers).status_code == 422
+
+    def test_sorting_by_scheduled_at_puts_undated_posts_last(
+        self, client, auth_headers, user, post_factory
+    ):
+        post_factory(user, title="Undated")
+        post_factory(user, title="Dated", status=PostStatus.SCHEDULED, scheduled_at=_future(2))
+
+        ascending = client.get(
+            f"{POSTS_URL}?sort_by=scheduled_at&sort_order=asc", headers=auth_headers
+        ).json()
+        descending = client.get(
+            f"{POSTS_URL}?sort_by=scheduled_at&sort_order=desc", headers=auth_headers
+        ).json()
+        assert [p["title"] for p in ascending["items"]] == ["Dated", "Undated"]
+        assert [p["title"] for p in descending["items"]] == ["Dated", "Undated"]
+
     def test_scheduled_date_range_filter(self, client, auth_headers, user, post_factory):
         post_factory(user, title="Soon", status=PostStatus.SCHEDULED, scheduled_at=_future(1))
         post_factory(user, title="Later", status=PostStatus.SCHEDULED, scheduled_at=_future(30))
@@ -229,6 +290,31 @@ class TestUpdatePost:
             f"{POSTS_URL}/{post.id}", json={"status": "draft"}, headers=auth_headers
         ).json()
         assert redrafted["published_at"] is None
+
+    def test_unschedule_draft_with_explicit_null_date(
+        self, client, auth_headers, user, post_factory
+    ):
+        post = post_factory(user, scheduled_at=_future(1))  # draft with a tentative date
+        response = client.patch(
+            f"{POSTS_URL}/{post.id}", json={"scheduled_at": None}, headers=auth_headers
+        )
+        assert response.status_code == 200
+        assert response.json()["scheduled_at"] is None
+
+    def test_null_date_on_scheduled_post_rejected(self, client, auth_headers, user, post_factory):
+        post = post_factory(user, status=PostStatus.SCHEDULED, scheduled_at=_future(1))
+        response = client.patch(
+            f"{POSTS_URL}/{post.id}", json={"scheduled_at": None}, headers=auth_headers
+        )
+        assert response.status_code == 422
+
+    def test_update_platform_only(self, client, auth_headers, user, post_factory):
+        post = post_factory(user, platform=Platform.LINKEDIN)
+        response = client.patch(
+            f"{POSTS_URL}/{post.id}", json={"platform": "tiktok"}, headers=auth_headers
+        )
+        assert response.status_code == 200
+        assert response.json()["platform"] == "tiktok"
 
     def test_explicit_null_title_rejected(self, client, auth_headers, user, post_factory):
         post = post_factory(user)

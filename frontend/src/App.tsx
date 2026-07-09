@@ -19,26 +19,33 @@ const queryClient = new QueryClient({
   },
 });
 
+/** The full route tree, exported separately so tests can mount it in a MemoryRouter. */
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route element={<Layout />}>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/posts" element={<PostsListPage />} />
+          <Route path="/posts/new" element={<PostCreatePage />} />
+          <Route path="/posts/:postId/edit" element={<PostEditPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
+      </Route>
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route element={<ProtectedRoute />}>
-              <Route element={<Layout />}>
-                <Route path="/" element={<DashboardPage />} />
-                <Route path="/calendar" element={<CalendarPage />} />
-                <Route path="/posts" element={<PostsListPage />} />
-                <Route path="/posts/new" element={<PostCreatePage />} />
-                <Route path="/posts/:postId/edit" element={<PostEditPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-              </Route>
-            </Route>
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+          <AppRoutes />
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

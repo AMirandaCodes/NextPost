@@ -54,6 +54,12 @@ class TestLogin:
         assert me.status_code == 200
         assert me.json()["email"] == user.email
 
+    def test_login_email_is_case_insensitive(self, client, user):
+        response = client.post(
+            LOGIN_URL, json={"email": "ALICE@Example.COM", "password": "password123"}
+        )
+        assert response.status_code == 200
+
     def test_wrong_password_unauthorized(self, client, user):
         response = client.post(LOGIN_URL, json={"email": user.email, "password": "wrong-pass"})
         assert response.status_code == 401

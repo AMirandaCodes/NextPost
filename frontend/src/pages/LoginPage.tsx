@@ -21,11 +21,13 @@ export function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>();
 
-  if (isAuthenticated) {
-    return <Navigate to="/posts" replace />;
-  }
-
   const from: string = location.state?.from ?? "/posts";
+
+  // Covers both an already-logged-in visitor and the re-render right after a
+  // successful login — in each case, continue to the originally requested page.
+  if (isAuthenticated) {
+    return <Navigate to={from} replace />;
+  }
 
   const submit = handleSubmit(async ({ email, password }) => {
     setServerError(null);

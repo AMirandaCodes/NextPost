@@ -44,6 +44,12 @@ class TestProfile:
         assert response.status_code == 200
         assert response.json()["email"] == "new@example.com"
 
+    def test_update_email_to_own_current_email_is_not_a_conflict(
+        self, client, auth_headers, user
+    ):
+        response = client.patch(ME_URL, json={"email": user.email}, headers=auth_headers)
+        assert response.status_code == 200
+
     def test_update_email_to_taken_address_conflict(self, client, db_session, auth_headers):
         db_session.add(
             User(

@@ -90,17 +90,22 @@ Paginated responses share one envelope:
 ## Running tests & lint
 
 ```bash
-# Backend
-docker compose run --rm backend pytest          # unit + API tests (uses a separate test DB)
+# Backend (~120 tests against a real PostgreSQL test database)
+docker compose run --rm backend pytest
+docker compose run --rm backend pytest --cov=app --cov-report=term-missing   # coverage
 docker compose run --rm backend ruff check .    # lint
 
-# Frontend
-docker compose run --rm frontend npm test           # Vitest + React Testing Library
+# Frontend (component tests + full user-workflow tests)
+docker compose run --rm frontend npm test
+docker compose run --rm frontend npx vitest run --coverage                   # coverage
 docker compose run --rm frontend npm run lint       # ESLint (zero warnings)
 docker compose run --rm frontend npm run type-check # tsc --noEmit
 ```
 
-CI (GitHub Actions) will run all of the above on every push in a later phase.
+The testing approach — real DB for backend tests, API-module mocking + workflow tests for
+the frontend, coverage as a gap-finder rather than a target — is documented in
+[ADR 0011](docs/adr/0011-testing-strategy.md). CI (GitHub Actions) will run all of the
+above on every push in a later phase.
 
 ## Documentation
 

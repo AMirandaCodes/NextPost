@@ -62,6 +62,22 @@ class TestUploadImage:
         response = upload(client, auth_headers, post.id, content=truncated)
         assert response.status_code == 422
 
+    def test_empty_file_rejected(self, client, auth_headers, user, post_factory):
+        post = post_factory(user)
+        response = upload(client, auth_headers, post.id, content=b"")
+        assert response.status_code == 422
+        assert "empty" in response.json()["detail"]
+
+    def test_valid_image_in_unsupported_format_rejected(
+        self, client, auth_headers, user, post_factory
+    ):
+        post = post_factory(user)
+        # A real, valid BMP renamed to .png: passes Pillow verification but the
+        # decoded format is outside the allow-list.
+        response = upload(client, auth_headers, post.id, content=make_image_bytes("BMP"))
+        assert response.status_code == 422
+        assert "JPEG, PNG, GIF or WebP" in response.json()["detail"]
+
     def test_oversized_image_rejected(
         self, client, auth_headers, user, post_factory, monkeypatch
     ):
@@ -123,6 +139,17 @@ class TestServeImage:
         response = client.get(f"{POSTS_URL}/{post.id}/image", headers=auth_headers)
         assert response.status_code == 404
 
+    def test_image_file_missing_on_disk_is_404(
+        self, client, auth_headers, user, post_factory, upload_dir
+    ):
+        post = post_factory(user)
+        filename = upload(client, auth_headers, post.id).json()["image_path"]
+        (upload_dir / filename).unlink()  # DB row says image exists, disk disagrees
+
+        response = client.get(f"{POSTS_URL}/{post.id}/image", headers=auth_headers)
+        assert response.status_code == 404
+        assert "missing" in response.json()["detail"]
+
 
 class TestDeleteImage:
     def test_delete_image_removes_file_and_clears_path(
@@ -137,6 +164,10 @@ class TestDeleteImage:
 
         detail = client.get(f"{POSTS_URL}/{post.id}", headers=auth_headers).json()
         assert detail["image_path"] is None
+
+    def test_delete_image_on_missing_post_is_404(self, client, auth_headers):
+        response = client.delete(f"{POSTS_URL}/99999/image", headers=auth_headers)
+        assert response.status_code == 404
 
     def test_deleting_post_deletes_its_image_file(
         self, client, auth_headers, user, post_factory, upload_dir
