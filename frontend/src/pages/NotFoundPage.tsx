@@ -7,8 +7,8 @@ export function NotFoundPage() {
       <p className="text-6xl font-bold text-indigo-200">404</p>
       <h1 className="text-2xl font-bold text-slate-900">Page not found</h1>
       <p className="text-slate-500">The page you're looking for doesn't exist or has moved.</p>
-      <Link to="/posts" className={primaryButtonClass}>
-        Back to posts
+      <Link to="/" className={primaryButtonClass}>
+        Back to the dashboard
       </Link>
     </main>
   );

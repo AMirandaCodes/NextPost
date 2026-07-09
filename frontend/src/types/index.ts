@@ -48,3 +48,12 @@ export interface Page<T> {
   page_size: number;
   total: number;
 }
+
+export interface DashboardStats {
+  total_posts: number;
+  draft_count: number;
+  scheduled_count: number;
+  published_count: number;
+  posts_this_week: number;
+  upcoming_posts: Post[];
+}

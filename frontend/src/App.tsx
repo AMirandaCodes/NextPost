@@ -1,8 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthProvider";
+import { CalendarPage } from "./pages/CalendarPage";
+import { DashboardPage } from "./pages/DashboardPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { PostCreatePage } from "./pages/PostCreatePage";
@@ -27,7 +29,8 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<Layout />}>
-                <Route path="/" element={<Navigate to="/posts" replace />} />
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/posts" element={<PostsListPage />} />
                 <Route path="/posts/new" element={<PostCreatePage />} />
                 <Route path="/posts/:postId/edit" element={<PostEditPage />} />

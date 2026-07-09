@@ -5,8 +5,8 @@ spreadsheet used to organise and schedule upcoming social media posts.
 
 NextPost manages **planning only**: it does not publish to social media platforms.
 
-> **Status: in development.** Backend API and the core frontend (auth, posts, profile) are
-> functional; dashboard and calendar views arrive in the next phase.
+> **Status: in development.** Auth, posts, profile, dashboard and calendar are functional;
+> image upload and email reminders arrive in later phases.
 
 ## Stack
 
@@ -31,6 +31,10 @@ NextPost manages **planning only**: it does not publish to social media platform
   create/edit forms (React Hook Form) with tag chips, profile management, delete
   confirmation, and loading/empty/error states on every data page
   ([ADR 0007](docs/adr/0007-frontend-state-and-forms.md)).
+- **Dashboard** — summary cards and upcoming posts as the home page.
+- **Calendar** — custom month view built on `date-fns`
+  ([ADR 0008](docs/adr/0008-custom-month-calendar.md)): navigate months, click a day for
+  its posts, click a post to edit. All dates shown in the viewer's local timezone.
 
 ## Quick start (development)
 

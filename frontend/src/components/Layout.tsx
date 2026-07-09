@@ -22,10 +22,16 @@ export function Layout() {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <div className="flex items-center gap-6">
-            <Link to="/posts" className="text-lg font-bold text-indigo-700">
+            <Link to="/" className="text-lg font-bold text-indigo-700">
               NextPost
             </Link>
             <nav aria-label="Main" className="flex items-center gap-1">
+              <NavLink to="/" end className={navLinkClass}>
+                Dashboard
+              </NavLink>
+              <NavLink to="/calendar" className={navLinkClass}>
+                Calendar
+              </NavLink>
               <NavLink to="/posts" className={navLinkClass}>
                 Posts
               </NavLink>
