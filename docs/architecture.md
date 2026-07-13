@@ -174,3 +174,4 @@ volumes. Migrations are an explicit deploy step, not app-startup magic.
 | [0010](adr/0010-reminder-delivery-semantics.md) | Reminder delivery semantics |
 | [0011](adr/0011-testing-strategy.md) | Testing strategy |
 | [0012](adr/0012-production-containerisation.md) | Production containerisation |
+| [0013](adr/0013-continuous-integration.md) | Continuous integration scope |

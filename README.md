@@ -1,5 +1,7 @@
 # NextPost
 
+[![CI](https://github.com/AMirandaCodes/NextPost/actions/workflows/ci.yml/badge.svg)](https://github.com/AMirandaCodes/NextPost/actions/workflows/ci.yml)
+
 **A lightweight social media planning app for small marketing teams — the spreadsheet
 replacement that knows what a schedule is.**
 
@@ -205,6 +207,10 @@ docker compose run --rm frontend npm run type-check # tsc --noEmit
 ```
 
 Or, with make: `make test`, `make lint`, or `make check` for everything at once.
+
+**CI** ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every push and pull
+request: a backend job (Ruff + pytest against a PostgreSQL service container) and a
+frontend job (ESLint, type-check, Vitest, production build), with dependency caching.
 
 The testing approach — real DB for backend tests, API-module mocking + workflow tests for
 the frontend, coverage as a gap-finder rather than a target — is documented in
