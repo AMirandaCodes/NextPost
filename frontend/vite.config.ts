@@ -11,6 +11,9 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    // File-change events don't propagate into Docker bind mounts on
+    // Windows/macOS hosts, so the compose file opts in to polling.
+    watch: process.env.VITE_USE_POLLING === "true" ? { usePolling: true, interval: 500 } : undefined,
     proxy: {
       "/api": { target: proxyTarget, changeOrigin: true },
     },
