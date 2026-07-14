@@ -13,7 +13,9 @@ services:
     dockerfilePath: ./backend/Dockerfile # last stage = production target
     dockerContext: ./backend
     # Migrations run before the app starts; Render injects $PORT.
-    dockerCommand: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    # NOTE: Render already executes dockerCommand via `sh -c` — do not wrap it
+    # in quotes or an explicit `sh -c` (that produces "command not found: <whole string>").
+    dockerCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
