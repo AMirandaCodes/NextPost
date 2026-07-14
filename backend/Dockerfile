@@ -32,6 +32,8 @@ COPY --from=builder /opt/venv /opt/venv
 COPY app ./app
 COPY alembic ./alembic
 COPY alembic.ini ./
+# Boot script for platforms that run migrations at startup (Render).
+COPY --chmod=755 start.sh ./
 # The uploads volume mounts here; created pre-USER so it belongs to appuser.
 RUN mkdir -p /app/uploads && chown appuser:appuser /app/uploads
 USER appuser
