@@ -22,6 +22,12 @@ export async function login(payload: LoginPayload): Promise<TokenResponse> {
   return data;
 }
 
+/** Demo-mode only: the backend returns a session for the shared demo account. */
+export async function demoLogin(): Promise<TokenResponse> {
+  const { data } = await api.post<TokenResponse>("/auth/demo");
+  return data;
+}
+
 export async function register(payload: RegisterPayload): Promise<User> {
   const { data } = await api.post<User>("/auth/register", payload);
   return data;

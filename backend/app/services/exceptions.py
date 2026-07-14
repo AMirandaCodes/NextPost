@@ -19,3 +19,7 @@ class PostNotFound(Exception):
 
 class ScheduledDateRequired(Exception):
     pass
+
+
+class DemoProfileLocked(Exception):
+    """The shared demo account's identity (email/password) can't be changed."""

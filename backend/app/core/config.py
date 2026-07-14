@@ -14,10 +14,16 @@ class Settings(BaseSettings):
     # Post images (see ADR 0009). Relative paths resolve against the working directory.
     UPLOAD_DIR: str = "uploads"
 
-    # Reminder scheduler (see ADR 0004 / 0010)
+    # Background scheduler (see ADR 0004 / 0010)
     SCHEDULER_ENABLED: bool = True
+    REMINDERS_ENABLED: bool = True  # the reminder job specifically (off in the demo deployment)
     REMINDER_INTERVAL_MINUTES: int = 60
     REMINDER_LEAD_HOURS: int = 24  # remind when a post is due within this window
+
+    # Portfolio demo mode (see ADR 0014): auto-login endpoint + hourly data reset
+    DEMO_MODE: bool = False
+    DEMO_USER_EMAIL: str = "demo@nextpost.dev"
+    DEMO_RESET_INTERVAL_MINUTES: int = 60
 
     # SMTP — defaults target the Mailpit dev container
     SMTP_HOST: str = "mailpit"

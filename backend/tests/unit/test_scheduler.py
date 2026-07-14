@@ -1,6 +1,11 @@
 import app.scheduler as scheduler_module
 from app.core.config import settings
-from app.scheduler import REMINDER_JOB_ID, create_scheduler, run_reminder_job
+from app.scheduler import (
+    DEMO_RESET_JOB_ID,
+    REMINDER_JOB_ID,
+    create_scheduler,
+    run_reminder_job,
+)
 
 
 class FakeSession:
@@ -19,6 +24,19 @@ class TestCreateScheduler:
             job = scheduler.get_job(REMINDER_JOB_ID)
             assert job is not None
             assert job.trigger.interval.total_seconds() == settings.REMINDER_INTERVAL_MINUTES * 60
+            # demo reset job only exists in demo mode
+            assert scheduler.get_job(DEMO_RESET_JOB_ID) is None
+        finally:
+            scheduler.shutdown(wait=False)
+
+    def test_reminders_can_be_disabled_independently(self, monkeypatch):
+        monkeypatch.setattr(settings, "REMINDERS_ENABLED", False)
+        monkeypatch.setattr(settings, "DEMO_MODE", True)
+        scheduler = create_scheduler()
+        scheduler.start(paused=True)
+        try:
+            assert scheduler.get_job(REMINDER_JOB_ID) is None
+            assert scheduler.get_job(DEMO_RESET_JOB_ID) is not None
         finally:
             scheduler.shutdown(wait=False)
 
