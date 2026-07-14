@@ -2,6 +2,10 @@
 
 [![CI](https://github.com/AMirandaCodes/NextPost/actions/workflows/ci.yml/badge.svg)](https://github.com/AMirandaCodes/NextPost/actions/workflows/ci.yml)
 
+**🚀 Live demo: [nextpost-frontend.onrender.com](https://nextpost-frontend.onrender.com)** —
+no sign-up needed; you land straight in a shared sandbox. It runs on free hosting that
+sleeps when idle, so the first visit can take up to a minute to wake.
+
 **A lightweight social media planning app for small marketing teams — the spreadsheet
 replacement that knows what a schedule is.**
 
@@ -125,6 +129,8 @@ Each has a full ADR with context and trade-offs in [docs/adr](docs/adr):
 | At-least-once reminders | Failed sends retry; `reminder_sent_at` makes runs idempotent | [0010](docs/adr/0010-reminder-delivery-semantics.md) |
 | Real-DB tests + workflow tests, no browser E2E | Coverage as gap-finder, not target | [0011](docs/adr/0011-testing-strategy.md) |
 | Multi-stage images, non-root, named volumes | Dev/prod from one Dockerfile without drift | [0012](docs/adr/0012-production-containerisation.md) |
+| Two-job CI, deliberately no CD extras | Lint, tests and build on every push — nothing else | [0013](docs/adr/0013-continuous-integration.md) |
+| Free-tier Render deployment + Demo Mode | Resets instead of read-only; ephemeral disk by design | [0014](docs/adr/0014-portfolio-deployment-and-demo-mode.md) |
 
 ## Repository structure
 
@@ -245,6 +251,26 @@ volumes. Back up by dumping the database (`pg_dump`) and archiving the uploads v
 **Scaling note:** the backend intentionally runs a single uvicorn worker — the reminder
 scheduler lives in-process, and a second worker would send duplicate emails (ADR 0004).
 TLS termination is expected to happen in front of nginx (reverse proxy or PaaS).
+
+## The live demo (Render)
+
+The [public demo](https://nextpost-frontend.onrender.com) is a free-tier adaptation of the
+production setup, documented in
+[ADR 0014](docs/adr/0014-portfolio-deployment-and-demo-mode.md):
+
+| Piece | How it's hosted |
+|---|---|
+| Backend | Render Docker web service building the same `backend/Dockerfile` (production target); migrations run from `start.sh` at boot |
+| Frontend | Render Static Site; two rewrite rules (`/api/*` → backend, `/*` → SPA fallback) replicate nginx, keeping the single-origin design |
+| Database | Neon free PostgreSQL (external — Render's free DB is one-per-account and expires) |
+| Images | Ephemeral by design: demo images are generated with Pillow at seed time, so no persistent disk is needed |
+| Email | Reminders disabled (`REMINDERS_ENABLED=false`); the scheduler still runs the demo reset |
+
+**Demo Mode** (`DEMO_MODE=true`) logs every visitor into a shared sandbox automatically —
+no login page. Everything is writable (create, edit, upload, delete); an hourly scheduler
+job resets the data to its seed, whose scheduled dates are relative to "now" so the
+dashboard and calendar always look current. Only the demo account's own email/password are
+locked. The deployment definition lives in [render.yaml](render.yaml).
 
 ## Future improvements
 

@@ -158,6 +158,18 @@ Production publishes exactly one port (nginx), runs every container as a non-roo
 healthchecks db/backend/frontend, and keeps all state in the `pgdata` and `uploads` named
 volumes. Migrations are an explicit deploy step, not app-startup magic.
 
+## Portfolio deployment (Render)
+
+The [public demo](https://nextpost-frontend.onrender.com) adapts the production setup to
+Render's free tier ([ADR 0014](adr/0014-portfolio-deployment-and-demo-mode.md)): the same
+backend image runs as a Docker web service (migrations via `start.sh`, since Render execs
+`dockerCommand` without a shell), the SPA is a Static Site whose rewrite rules stand in
+for nginx, PostgreSQL is a free external Neon instance, and **Demo Mode** replaces
+persistent state — visitors auto-login to a shared, fully writable sandbox that an
+APScheduler job resets (posts, tags, and Pillow-generated images) hourly and at every
+boot. Reminders are disabled by the `REMINDERS_ENABLED` flag; the demo account's own
+credentials are the only thing visitors can't change.
+
 ## ADR index
 
 | # | Title |
@@ -175,3 +187,4 @@ volumes. Migrations are an explicit deploy step, not app-startup magic.
 | [0011](adr/0011-testing-strategy.md) | Testing strategy |
 | [0012](adr/0012-production-containerisation.md) | Production containerisation |
 | [0013](adr/0013-continuous-integration.md) | Continuous integration scope |
+| [0014](adr/0014-portfolio-deployment-and-demo-mode.md) | Portfolio deployment on Render and Demo Mode |
